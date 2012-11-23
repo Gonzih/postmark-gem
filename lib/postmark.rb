@@ -86,9 +86,27 @@ module Postmark
   end
 
   def send_through_postmark(message) #:nodoc:
+    send_through_postmark_with_block do
+      HttpClient.post("email", Postmark::Json.encode(convert_message_to_options_hash(message)))
+    end
+  end
+
+  def send_batch_through_postmark(messages) #:nodoc:
+    raise DeliveryError.new("Batch api accepts only 500 emails at once") if messages.count > 500
+
+    messages = messages.map do |message|
+      convert_message_to_options_hash(message)
+    end
+
+    send_through_postmark_with_block do
+      HttpClient.post("email/batch", Postmark::Json.encode(messages))
+    end
+  end
+
+  def send_through_postmark_with_block
     @retries = 0
     begin
-      HttpClient.post("email", Postmark::Json.encode(convert_message_to_options_hash(message)))
+      yield
     rescue DeliveryError, Timeout::Error
       if @retries < max_retries
          @retries += 1

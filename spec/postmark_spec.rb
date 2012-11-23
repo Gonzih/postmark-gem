@@ -64,6 +64,7 @@ describe Postmark do
     def stub_web!(data={})
       data[:body] ||= response_body(data[:status].nil? ? 200 : data[:status].first)
       FakeWeb.register_uri(:post, "http://api.postmarkapp.com/email", data)
+      FakeWeb.register_uri(:post, "http://api.postmarkapp.com/email/batch", data)
     end
 
     def response_body(status, message="")
@@ -74,6 +75,12 @@ describe Postmark do
       stub_web!
       Postmark.send_through_postmark(mail_message)
       FakeWeb.should have_requested(:post, "http://api.postmarkapp.com/email")
+    end
+
+    it "should send batch of emails successfully" do
+      stub_web!
+      Postmark.send_batch_through_postmark([mail_message])
+      FakeWeb.should have_requested(:post, "http://api.postmarkapp.com/email/batch")
     end
 
     it "should warn when header is invalid" do
@@ -115,6 +122,21 @@ describe Postmark do
       Postmark::HttpClient.should_receive(:post).and_raise(Timeout::Error)
       Postmark::HttpClient.should_receive(:post).and_return('{}')
       lambda { Postmark.send_through_postmark(mail_message) }.should_not raise_error
+    end
+
+    it "should raise exception if batch size is more than 500" do
+      messages = double(:messages, :count => 501)
+
+      lambda { Postmark.send_batch_through_postmark(messages) }.should raise_error(Postmark::DeliveryError)
+    end
+
+    it "should convert batch of messages to hash" do
+      stub_web!
+      message = double(:message)
+      Postmark.should_receive(:convert_message_to_options_hash).with(message)
+      messages = [message]
+
+      Postmark.send_batch_through_postmark(messages)
     end
   end
 
