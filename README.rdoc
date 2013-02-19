@@ -1,4 +1,4 @@
-= Postmark Gem
+= Postmark Gem {<img src="https://travis-ci.org/Gonzih/postmark-gem.png" />}[https://travis-ci.org/Gonzih/postmark-gem]
 
 This gem is an official wrapper for Postmark HTTP API (http://postmarkapp.com). Use it to send emails and retrieve info about bounces.
 
