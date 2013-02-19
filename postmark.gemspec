@@ -32,7 +32,7 @@ Gem::Specification.new do |s|
 
   s.add_dependency "rake"
   s.add_dependency "json"
-  
+
   s.add_development_dependency "tmail"
   s.add_development_dependency "mail"
   s.add_development_dependency "rspec-core", "~> 2.0"
